@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <time.h>
 
 #include "state.h"
 
@@ -9,6 +10,7 @@ const int BORDER_THICKNESS = 20;
 state world;
 
 int init() {
+    srand((unsigned int) time(NULL));
     int success = 0;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -79,6 +81,7 @@ void drawBoundary() {
 }
 
 void drawPaddle(state *s) {
+    SDL_Rect *p = &((*s).paddleR);
     int paddle = (int) ((((*s).controller_state).left_x_axis + 32768.0) * 1240.0 / 65536.0);
     if (paddle < BORDER_THICKNESS) {
         paddle = BORDER_THICKNESS;
@@ -86,11 +89,11 @@ void drawPaddle(state *s) {
         paddle = SCREEN_WIDTH - BORDER_THICKNESS - 100;
     }
 
-    (*s).paddleR.x = paddle;
-    (*s).paddleR.y = SCREEN_HEIGHT - BORDER_THICKNESS;
-    (*s).paddleR.w = 99;
-    (*s).paddleR.h = BORDER_THICKNESS;
-    SDL_RenderFillRect(world.renderer, &((*s).paddleR));
+    p->x = paddle;
+    p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
+    p->w = 99;
+    p->h = BORDER_THICKNESS;
+    SDL_RenderFillRect(world.renderer, p);
     SDL_SetRenderDrawColor(world.renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderDrawLine(world.renderer, paddle - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
                        paddle - 1, SCREEN_HEIGHT);
@@ -100,25 +103,42 @@ void drawPaddle(state *s) {
 
 void drawBall(state *s) {
     SDL_SetRenderDrawColor(world.renderer, 0xFF, 0x00, 0x00, 0xFF);
-    if ((*s).ball.ball_in_play) {
-        // move the ball and do stuff ;)
-    } else {
-        (*s).ball.ballR.x = (*s).paddleR.x + 50 - BORDER_THICKNESS / 2;
-    }
-    SDL_RenderFillRect(world.renderer, &(world.ball.ballR));
+    SDL_RenderFillRect(world.renderer, &s->ball.ballR);
 }
 
-void updateWorld() {
-     if (!world.ball.ball_in_play && world.controller_state.button_a == SDL_PRESSED) {
-        world.ball.ball_in_play = 1;
-    }
-
-}
-
-void renderWorld() {
+void renderWorld(state *s) {
     drawBoundary();
-    drawPaddle(&(world));
-    drawBall(&world);
+    drawPaddle(s);
+    drawBall(s);
+}
+
+void move_ball(state *s) {
+    ball *b = (ball *) &((*s).ball);
+    b->x += b->dx;
+    b->y += b->dy;
+    b->ballR.x = (int)b->x;
+    b->ballR.y = (int)b->y;
+}
+
+void updateWorld(state *s) {
+    ball *b = (ball *) &((*s).ball);
+    if (b->ball_in_play) {
+        move_ball(s);
+    } else {
+        if ((*s).controller_state.button_a == SDL_PRESSED) {
+            printf("ball in play!\n");
+            b->ball_in_play = 1;
+            int i = rand() % 60 + 60;
+            double angle = i * (M_PI / 180);
+            b->dx = cos(angle);
+            b->dy = -sin(angle);
+            move_ball(s);
+        } else {
+            b->ballR.x = (*s).paddleR.x + 50 - BORDER_THICKNESS / 2;
+            b->x = b->ballR.x;
+            b->y = b->ballR.y;
+        }
+    }
 }
 
 void event_loop() {
@@ -129,21 +149,22 @@ void event_loop() {
     ballR->h = BORDER_THICKNESS;
     int quit = 0;
     SDL_Event e;
-    init_controller_state(&(world.controller_state));
+    init_controller_state((controller_state *) &(world.controller_state));
 
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
                 quit = 1;
             } else {
-                controller_event(e, &(world.controller_state));
-                updateWorld();
+                controller_event(e, (controller_state *) &(world.controller_state));
             }
         }
+        updateWorld(&world);
+
         SDL_SetRenderDrawColor(world.renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(world.renderer);
 
-        renderWorld();
+        renderWorld(&world);
 
         SDL_RenderPresent(world.renderer);
     }
