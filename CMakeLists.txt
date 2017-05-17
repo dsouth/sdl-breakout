@@ -3,7 +3,8 @@ project(breakout)
 
 set(CMAKE_C_STANDARD 11)
 
-set(SOURCE_FILES src/main.c)
+set(SOURCE_FILES src/main.c
+        src/controller.c)
 include_directories(/usr/local/include/)
 link_directories(/usr/local/lib/)
 add_executable(breakout ${SOURCE_FILES})
