@@ -118,6 +118,10 @@ void move_ball(state *s) {
     b->y += b->dy;
     b->ballR.x = (int)b->x;
     b->ballR.y = (int)b->y;
+    if (b->ballR.y < BORDER_THICKNESS) {
+        b->dy = -b->dy;
+        b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
+    }
 }
 
 void updateWorld(state *s) {
