@@ -12,6 +12,8 @@ int loadMedia();
 
 void close();
 
+void drawPaddle(controller_state *s);
+
 SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
 
@@ -80,6 +82,25 @@ void drawHorizontalBoundary(int y) {
     SDL_RenderFillRect(gRenderer, &rect);
 }
 
+void drawPaddle(controller_state *s) {
+    int paddle = (int) (((*s).left_x_axis + 32768.0) * 1240.0 / 65536.0);
+    if (paddle < BORDER_THICKNESS) {
+        paddle = BORDER_THICKNESS;
+    } else if (paddle > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
+        paddle = SCREEN_WIDTH - BORDER_THICKNESS - 100;
+    }
+
+    SDL_Rect paddleR = {paddle,
+                        SCREEN_HEIGHT - BORDER_THICKNESS,
+                        99, BORDER_THICKNESS};
+    SDL_RenderFillRect(gRenderer, &paddleR);
+    SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_RenderDrawLine(gRenderer, paddle - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
+                       paddle - 1, SCREEN_HEIGHT);
+    SDL_RenderDrawLine(gRenderer, paddle + 100, SCREEN_HEIGHT - BORDER_THICKNESS,
+                       paddle + 100, SCREEN_HEIGHT);
+}
+
 void event_loop() {
     int quit = 0;
     SDL_Event e;
@@ -101,23 +122,7 @@ void event_loop() {
         drawVerticalBoundary(0);
         drawVerticalBoundary(SCREEN_WIDTH - BORDER_THICKNESS);
         drawHorizontalBoundary(0);
-
-        int paddle = (int) ((s.left_x_axis + 32768.0) * 1240.0 / 65536.0);
-        if (paddle < BORDER_THICKNESS) {
-            paddle = BORDER_THICKNESS;
-        } else if (paddle > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
-            paddle = SCREEN_WIDTH - BORDER_THICKNESS - 100;
-        }
-
-        SDL_Rect paddleR = {paddle,
-                            SCREEN_HEIGHT - BORDER_THICKNESS,
-                            99, BORDER_THICKNESS};
-        SDL_RenderFillRect(gRenderer, &paddleR);
-        SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
-        SDL_RenderDrawLine(gRenderer, paddle - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
-                           paddle - 1, SCREEN_HEIGHT);
-        SDL_RenderDrawLine(gRenderer, paddle + 100, SCREEN_HEIGHT - BORDER_THICKNESS,
-                           paddle + 100, SCREEN_HEIGHT);
+        drawPaddle(&s);
 
         SDL_RenderPresent(gRenderer);
     }
