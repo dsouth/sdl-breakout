@@ -8,6 +8,17 @@
 #ifndef BREAKOUT_STATE_H_H
 #define BREAKOUT_STATE_H_H
 
+typedef struct ball ball;
+
+struct ball {
+    SDL_Rect ballR;
+    int ball_in_play;
+    double x;
+    double y;
+    double dx;
+    double dy;
+};
+
 typedef struct state state;
 
 struct state {
@@ -16,8 +27,7 @@ struct state {
     SDL_Joystick *joystick;
     controller_state controller_state;
     SDL_Rect paddleR;
-    SDL_Rect ballR;
-    int ball_in_play;
+    ball ball;
 };
 
 #endif //BREAKOUT_STATE_H_H

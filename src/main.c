@@ -72,6 +72,7 @@ void drawHorizontalBoundary(int y) {
 }
 
 void drawBoundary() {
+    SDL_SetRenderDrawColor(world.renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     drawVerticalBoundary(0);
     drawVerticalBoundary(SCREEN_WIDTH - BORDER_THICKNESS);
     drawHorizontalBoundary(0);
@@ -99,23 +100,36 @@ void drawPaddle(state *s) {
 
 void drawBall(state *s) {
     SDL_SetRenderDrawColor(world.renderer, 0xFF, 0x00, 0x00, 0xFF);
-    if ((*s).ball_in_play) {
+    if ((*s).ball.ball_in_play) {
         // move the ball and do stuff ;)
     } else {
-        (*s).ballR.x = (*s).paddleR.x + 50 - BORDER_THICKNESS/2;
+        (*s).ball.ballR.x = (*s).paddleR.x + 50 - BORDER_THICKNESS / 2;
     }
-    SDL_RenderFillRect(world.renderer, &(world.ballR));
+    SDL_RenderFillRect(world.renderer, &(world.ball.ballR));
+}
+
+void updateWorld() {
+     if (!world.ball.ball_in_play && world.controller_state.button_a == SDL_PRESSED) {
+        world.ball.ball_in_play = 1;
+    }
+
+}
+
+void renderWorld() {
+    drawBoundary();
+    drawPaddle(&(world));
+    drawBall(&world);
 }
 
 void event_loop() {
+    SDL_Rect *ballR = &(world.ball.ballR);
+    ballR->x = SCREEN_WIDTH / 2 + BORDER_THICKNESS;
+    ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BORDER_THICKNESS - 1;
+    ballR->w = BORDER_THICKNESS;
+    ballR->h = BORDER_THICKNESS;
     int quit = 0;
     SDL_Event e;
     init_controller_state(&(world.controller_state));
-    world.ballR.x = SCREEN_WIDTH / 2 + BORDER_THICKNESS;
-    world.ballR.y = SCREEN_HEIGHT - BORDER_THICKNESS - BORDER_THICKNESS - 1;
-    world.ballR.w = BORDER_THICKNESS;
-    world.ballR.h = BORDER_THICKNESS;
-    world.ball_in_play = 0;
 
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
@@ -123,16 +137,13 @@ void event_loop() {
                 quit = 1;
             } else {
                 controller_event(e, &(world.controller_state));
+                updateWorld();
             }
         }
         SDL_SetRenderDrawColor(world.renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(world.renderer);
 
-        SDL_SetRenderDrawColor(world.renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        drawBoundary();
-        drawPaddle(&(world));
-
-        drawBall(&world);
+        renderWorld();
 
         SDL_RenderPresent(world.renderer);
     }
