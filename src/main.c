@@ -6,6 +6,7 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
 const int BORDER_THICKNESS = 20;
+const int BALL_THICKNESS = BORDER_THICKNESS;
 
 state world;
 
@@ -122,6 +123,14 @@ void move_ball(state *s) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
     }
+    if (b->ballR.x < BORDER_THICKNESS) {
+        b->dx = -b->dx;
+        b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
+    } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
+        b->dx = -b->dx;
+        b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
+                     - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
+    }
 }
 
 void updateWorld(state *s) {
@@ -130,7 +139,6 @@ void updateWorld(state *s) {
         move_ball(s);
     } else {
         if ((*s).controller_state.button_a == SDL_PRESSED) {
-            printf("ball in play!\n");
             b->ball_in_play = 1;
             int i = rand() % 60 + 60;
             double angle = i * (M_PI / 180);
@@ -138,7 +146,7 @@ void updateWorld(state *s) {
             b->dy = -sin(angle);
             move_ball(s);
         } else {
-            b->ballR.x = (*s).paddleR.x + 50 - BORDER_THICKNESS / 2;
+            b->ballR.x = (*s).paddleR.x + 50 - BALL_THICKNESS / 2;
             b->x = b->ballR.x;
             b->y = b->ballR.y;
         }
@@ -147,10 +155,10 @@ void updateWorld(state *s) {
 
 void event_loop() {
     SDL_Rect *ballR = &(world.ball.ballR);
-    ballR->x = SCREEN_WIDTH / 2 + BORDER_THICKNESS;
-    ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BORDER_THICKNESS - 1;
-    ballR->w = BORDER_THICKNESS;
-    ballR->h = BORDER_THICKNESS;
+    ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
+    ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BALL_THICKNESS - 1;
+    ballR->w = BALL_THICKNESS;
+    ballR->h = BALL_THICKNESS;
     int quit = 0;
     SDL_Event e;
     init_controller_state((controller_state *) &(world.controller_state));
