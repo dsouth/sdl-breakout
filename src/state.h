@@ -17,6 +17,8 @@ struct ball {
     double y;
     double dx;
     double dy;
+    double speed;
+    int missed;
 };
 
 typedef struct state state;

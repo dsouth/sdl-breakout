@@ -115,7 +115,10 @@ void renderWorld(state *s) {
 }
 
 void reset_ball(state *s) {
-    (*s).ball.ball_in_play = 0;
+    ball *b = (ball *) &((*s).ball);
+    b->ball_in_play = 0;
+    b->speed = 1.0;
+    b->missed = 0;
     SDL_Rect *ballR = &(*s).ball.ballR;
     ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
     ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BALL_THICKNESS - 1;
@@ -125,22 +128,31 @@ void reset_ball(state *s) {
 
 void move_ball(state *s) {
     ball *b = (ball *) &((*s).ball);
-    b->x += b->dx;
-    b->y += b->dy;
+    b->x += b->dx * b->speed;
+    b->y += b->dy * b->speed;
     b->ballR.x = (int)b->x;
     b->ballR.y = (int)b->y;
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
     } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS) {
-        // do we hit the ball
-        SDL_Rect *p = &((*s).paddleR);
-        if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
-            b->dy = -b->dy;
-            b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
-                         + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
-        } else if (b->ballR.y > SCREEN_HEIGHT) {
-             reset_ball(s);
+        if (!b->missed) {
+            // do we hit the ball
+            SDL_Rect *p = &((*s).paddleR);
+            // paddle 'hit' ball
+            if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
+                // find a new angle here please?
+                b->dy = -b->dy;
+                b->speed += 0.1;
+                b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
+                             + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
+            } else {
+                b->missed = 1;
+            }
+        } else {
+            if (b->ballR.y > SCREEN_HEIGHT) {
+                reset_ball(s);
+            }
         }
     }
     if (b->ballR.x < BORDER_THICKNESS) {
