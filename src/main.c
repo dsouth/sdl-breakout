@@ -7,6 +7,7 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
 const int BORDER_THICKNESS = 20;
 const int BALL_THICKNESS = BORDER_THICKNESS;
+const int PADDLE_THICKNESS = BORDER_THICKNESS;
 
 state world;
 
@@ -93,7 +94,7 @@ void drawPaddle(state *s) {
     p->x = paddle;
     p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
     p->w = 99;
-    p->h = BORDER_THICKNESS;
+    p->h = PADDLE_THICKNESS;
     SDL_RenderFillRect(world.renderer, p);
     SDL_SetRenderDrawColor(world.renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderDrawLine(world.renderer, paddle - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
@@ -113,6 +114,15 @@ void renderWorld(state *s) {
     drawBall(s);
 }
 
+void reset_ball(state *s) {
+    (*s).ball.ball_in_play = 0;
+    SDL_Rect *ballR = &(*s).ball.ballR;
+    ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
+    ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BALL_THICKNESS - 1;
+    ballR->w = BALL_THICKNESS;
+    ballR->h = BALL_THICKNESS;
+}
+
 void move_ball(state *s) {
     ball *b = (ball *) &((*s).ball);
     b->x += b->dx;
@@ -122,6 +132,16 @@ void move_ball(state *s) {
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
+    } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS) {
+        // do we hit the ball
+        SDL_Rect *p = &((*s).paddleR);
+        if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
+            b->dy = -b->dy;
+            b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
+                         + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
+        } else if (b->ballR.y > SCREEN_HEIGHT) {
+             reset_ball(s);
+        }
     }
     if (b->ballR.x < BORDER_THICKNESS) {
         b->dx = -b->dx;
@@ -154,11 +174,7 @@ void updateWorld(state *s) {
 }
 
 void event_loop() {
-    SDL_Rect *ballR = &(world.ball.ballR);
-    ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
-    ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BALL_THICKNESS - 1;
-    ballR->w = BALL_THICKNESS;
-    ballR->h = BALL_THICKNESS;
+    reset_ball(&world);
     int quit = 0;
     SDL_Event e;
     init_controller_state((controller_state *) &(world.controller_state));
