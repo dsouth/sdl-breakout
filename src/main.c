@@ -8,7 +8,8 @@ const int SCREEN_HEIGHT = 960;
 const int BORDER_THICKNESS = 20;
 const int BALL_THICKNESS = BORDER_THICKNESS;
 const int PADDLE_THICKNESS = BORDER_THICKNESS;
-
+// about 5 degrees
+static const double MIN_RADIAN = 0.0872655;
 state world;
 
 int init() {
@@ -135,14 +136,26 @@ void move_ball(state *s) {
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
-    } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS) {
+    } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS && b->dy > 0) {
         if (!b->missed) {
             // do we hit the ball
             SDL_Rect *p = &((*s).paddleR);
             // paddle 'hit' ball
             if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
-                // find a new angle here please?
-                b->dy = -b->dy;
+                double radians = acos(b->dx);
+                double hit_width = p->w + b->ballR.w;
+                double middle = (hit_width / 2);
+                double denominator = p->x - b->ballR.x - b->ballR.w + middle;
+                double v = denominator / middle;
+                double angle_adjustment = v * 1.0472;
+                radians += angle_adjustment;
+                if (radians < MIN_RADIAN) {
+                    radians = MIN_RADIAN;
+                } else if (radians > M_PI - MIN_RADIAN) {
+                    radians = M_PI - MIN_RADIAN;
+                }
+                b->dx = cos(radians);
+                b->dy = -sin(radians);
                 b->speed += 0.1;
                 b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
                              + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
