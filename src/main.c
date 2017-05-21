@@ -6,6 +6,7 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
 const int BORDER_THICKNESS = 20;
+const int FPS = 60;
 const int BALL_THICKNESS = BORDER_THICKNESS;
 const int PADDLE_THICKNESS = BORDER_THICKNESS;
 // about 5 degrees
@@ -118,7 +119,7 @@ void renderWorld(state *s) {
 void reset_ball(state *s) {
     ball *b = (ball *) &((*s).ball);
     b->ball_in_play = 0;
-    b->speed = 1.0;
+    b->speed = 1.3333 * FPS;
     b->missed = 0;
     SDL_Rect *ballR = &(*s).ball.ballR;
     ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
@@ -133,29 +134,34 @@ void move_ball(state *s) {
     b->y += b->dy * b->speed;
     b->ballR.x = (int)b->x;
     b->ballR.y = (int)b->y;
+    // if hit top boundary
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
+
+        // if ball if at or beyond paddle and going down
     } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS && b->dy > 0) {
+        // if the paddle hasn't yet missed the ball
         if (!b->missed) {
             // do we hit the ball
             SDL_Rect *p = &((*s).paddleR);
             // paddle 'hit' ball
             if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
-                double radians = acos(b->dx);
+                double current_ball_angle = acos(b->dx);
+                // the hit width for the paddle
                 double hit_width = p->w + b->ballR.w;
                 double middle = (hit_width / 2);
                 double denominator = p->x - b->ballR.x - b->ballR.w + middle;
                 double v = denominator / middle;
                 double angle_adjustment = v * 1.0472;
-                radians += angle_adjustment;
-                if (radians < MIN_RADIAN) {
-                    radians = MIN_RADIAN;
-                } else if (radians > M_PI - MIN_RADIAN) {
-                    radians = M_PI - MIN_RADIAN;
+                current_ball_angle += angle_adjustment;
+                if (current_ball_angle < MIN_RADIAN) {
+                    current_ball_angle = MIN_RADIAN;
+                } else if (current_ball_angle > M_PI - MIN_RADIAN) {
+                    current_ball_angle = M_PI - MIN_RADIAN;
                 }
-                b->dx = cos(radians);
-                b->dy = -sin(radians);
+                b->dx = cos(current_ball_angle);
+                b->dy = -sin(current_ball_angle);
                 b->speed += 0.1;
                 b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
                              + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
@@ -199,12 +205,16 @@ void updateWorld(state *s) {
 }
 
 void event_loop() {
+    init_controller_state((controller_state *) &(world.controller_state));
     reset_ball(&world);
+    timer cap;
+    init_timer(&cap);
     int quit = 0;
     SDL_Event e;
-    init_controller_state((controller_state *) &(world.controller_state));
+    const int screen_ticks_per_frame = 1000 / FPS;
 
     while (!quit) {
+        start_timer(&cap);
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
                 quit = 1;
@@ -212,6 +222,7 @@ void event_loop() {
                 controller_event(e, (controller_state *) &(world.controller_state));
             }
         }
+
         updateWorld(&world);
 
         SDL_SetRenderDrawColor(world.renderer, 0x00, 0x00, 0x00, 0xFF);
@@ -220,6 +231,10 @@ void event_loop() {
         renderWorld(&world);
 
         SDL_RenderPresent(world.renderer);
+        Uint32 frameTicks = getTicks(&cap);
+        if (frameTicks < screen_ticks_per_frame) {
+            SDL_Delay(screen_ticks_per_frame - frameTicks);
+        }
     }
 }
 
