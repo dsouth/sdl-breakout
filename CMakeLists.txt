@@ -4,7 +4,7 @@ project(breakout)
 set(CMAKE_C_STANDARD 11)
 
 set(SOURCE_FILES src/main.c
-        src/controller.c src/timer.c src/timer.h)
+        src/controller.c src/timer.c src/timer.h src/update.c src/constants.h src/update.h)
 include_directories(/usr/local/include/)
 link_directories(/usr/local/lib/)
 add_executable(breakout ${SOURCE_FILES})
