@@ -4,7 +4,6 @@
 #include <SDL2/SDL.h>
 
 #include "controller.h"
-#include "timer.h"
 
 #ifndef BREAKOUT_STATE_H_H
 #define BREAKOUT_STATE_H_H

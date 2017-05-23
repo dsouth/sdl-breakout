@@ -25,10 +25,9 @@ int init() {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             success = 0;
         } else {
-            // TODO: VSYNC???
             world_state.renderer = SDL_CreateRenderer(world_state.window,
                                                 -1,
-                                                SDL_RENDERER_ACCELERATED);
+                                                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
             if (world_state.renderer == NULL) {
                 printf("Renderer could not be create! SDL_Error: %s\n", SDL_GetError());
                 success = 0;
@@ -62,17 +61,29 @@ int loadMedia() {
     return 1;
 }
 
+// assumes 60 FPS
+Uint8 expected_interval[] = {17, 17, 16};
+Uint8 expected_index = 0;
+Uint32 expected_time;
+
+Uint32 get_next_expected_time_delta() {
+    Uint32 d = expected_interval[expected_index];
+    expected_index++;
+    if (expected_index > 2) {
+        expected_index = 0;
+    }
+    return d;
+}
+
 void event_loop() {
     init_controller_state((controller_state *) &(world_state.controller_state));
     reset_ball(&world_state);
-    timer cap;
-    init_timer(&cap);
     int quit = 0;
     SDL_Event e;
-    const int screen_ticks_per_frame = 1000 / FPS;
+
+    expected_time = get_next_expected_time_delta() + SDL_GetTicks();
 
     while (!quit) {
-        start_timer(&cap);
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
                 quit = 1;
@@ -82,17 +93,19 @@ void event_loop() {
         }
 
         update_state(&world_state);
+        if (SDL_GetTicks() < expected_time) {
+            SDL_SetRenderDrawColor(world_state.renderer, 0x00, 0x00, 0x00, 0xFF);
+            SDL_RenderClear(world_state.renderer);
 
-        SDL_SetRenderDrawColor(world_state.renderer, 0x00, 0x00, 0x00, 0xFF);
-        SDL_RenderClear(world_state.renderer);
+            render_state(&world_state);
 
-        render_state(&world_state);
-
-        SDL_RenderPresent(world_state.renderer);
-        Uint32 frameTicks = getTicks(&cap);
-        if (frameTicks < screen_ticks_per_frame) {
-            SDL_Delay(screen_ticks_per_frame - frameTicks);
+            SDL_RenderPresent(world_state.renderer);
+            Uint32 ticks = SDL_GetTicks();
+            if (ticks < expected_time) {
+                SDL_Delay(expected_time - ticks);
+            }
         }
+        expected_time += get_next_expected_time_delta();
     }
 }
 
