@@ -74,10 +74,31 @@ Uint32 get_next_expected_time_delta() {
     }
     return d;
 }
+void init_brick(state *s) {
+    Uint8 count = 50;
+    s->bricks = malloc(sizeof(brick[count]));
+    s->brick_count = count;
+    for (Uint8 i = 0; i < 25; i++) {
+        SDL_Rect *r = &s->bricks[i].rect;
+        r->x = 27 + i * 49;
+        r->y = 120;
+        r->w = 48;
+        r->h = 20;
+        s->bricks[i].showing = 1;
+        r = &s->bricks[i + 25].rect;
+        r->x = 27 + i * 49;
+        r->y = 145;
+        r->w = 48;
+        r->h = 20;
+        s->bricks[i + 25].showing = 1;
+    }
+
+}
 
 void event_loop() {
     init_controller_state((controller_state *) &(world_state.controller_state));
     reset_ball(&world_state);
+    init_brick(&world_state);
     int quit = 0;
     SDL_Event e;
 
@@ -93,6 +114,7 @@ void event_loop() {
         }
 
         update_state(&world_state);
+        // don't render if behind
         if (SDL_GetTicks() < expected_time) {
             SDL_SetRenderDrawColor(world_state.renderer, 0x00, 0x00, 0x00, 0xFF);
             SDL_RenderClear(world_state.renderer);
@@ -101,6 +123,7 @@ void event_loop() {
 
             SDL_RenderPresent(world_state.renderer);
             Uint32 ticks = SDL_GetTicks();
+            // delay if we are ahead
             if (ticks < expected_time) {
                 SDL_Delay(expected_time - ticks);
             }

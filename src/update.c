@@ -18,6 +18,7 @@ void reset_ball(state *s) {
 }
 
 void move_ball(state *s) {
+    SDL_Rect result;
     ball *b = (ball *) &((*s).ball);
     b->x += b->dx * b->speed;
     b->y += b->dy * b->speed;
@@ -28,7 +29,7 @@ void move_ball(state *s) {
         b->dy = -b->dy;
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
 
-        // if ball if at or beyond paddle and going down
+        // if ball at or beyond paddle and going down
     } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS && b->dy > 0) {
         // if the paddle hasn't yet missed the ball
         if (!b->missed) {
@@ -62,14 +63,22 @@ void move_ball(state *s) {
                 reset_ball(s);
             }
         }
-    }
-    if (b->ballR.x < BORDER_THICKNESS) {
+        // if ball hit left border
+    } else if (b->ballR.x < BORDER_THICKNESS) {
         b->dx = -b->dx;
         b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
+        // if ball hit right border
     } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
         b->dx = -b->dx;
         b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
                      - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
+    } else {
+        for (Uint8 i = 0; i < s->brick_count; i++) {
+            if (SDL_IntersectRect(&b->ballR, &s->bricks[i].rect, &result)) {
+                s->bricks[i].showing = 0;
+                break;
+            }
+        }
     }
 }
 

@@ -49,10 +49,23 @@ void drawBall(state *s) {
     SDL_RenderFillRect(s->renderer, &s->ball.ballR);
 }
 
+void drawBricks(state *s) {
+    SDL_SetRenderDrawColor(s->renderer, 0x00, 0xFF, 0xFF, 0xFF);
+    for (Uint8 i = 0; i < s->brick_count; i ++) {
+        brick *b = &s->bricks[i];
+        if (b->showing) {
+            SDL_RenderFillRect(s->renderer, &b->rect);
+        }
+
+    }
+
+}
+
 void render_state(state *s) {
     drawBoundary(s);
     drawPaddle(s);
     drawBall(s);
+    drawBricks(s);
 }
 
 
