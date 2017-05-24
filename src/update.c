@@ -73,10 +73,15 @@ void move_ball(state *s) {
         b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
                      - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
     } else {
+        int bounced = 0;
         for (Uint32 i = 0; i < s->brick_count; i++) {
-            if (SDL_IntersectRect(&b->ballR, &s->bricks[i].rect, &result)) {
+            if (s->bricks[i].showing && SDL_IntersectRect(&b->ballR, &s->bricks[i].rect, &result)) {
                 s->bricks[i].showing = 0;
-//                break;
+                if (!bounced) {
+                    b->dy = -b->dy;
+                    // bounce the ball
+                }
+                bounced = 1;
             }
         }
     }
