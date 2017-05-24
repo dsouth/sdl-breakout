@@ -74,10 +74,25 @@ Uint32 get_next_expected_time_delta() {
     }
     return d;
 }
+
 void init_brick(state *s) {
-    Uint8 count = 50;
-    s->bricks = malloc(sizeof(brick[count]));
+    Uint32 rows = 25;
+    Uint32 count = rows * 25;
+    printf("%lu\n", sizeof(brick));
+    printf("%lu\n", sizeof(brick) * count);
+    s->bricks = malloc(sizeof(brick) * count);
     s->brick_count = count;
+    for (Uint16 r = 0; r < rows; r++) {
+        for (Uint16 i =0; i < 25; i++) {
+            SDL_Rect *rect = &s->bricks[i + r * 25].rect;
+            rect->x = 27 + i * 49;
+            rect->y = 120 + r * 25;
+            rect->w = 48;
+            rect->h = 20;
+            s->bricks[i + r * 25].showing = 1;
+        }
+    }
+    /*
     for (Uint8 i = 0; i < 25; i++) {
         SDL_Rect *r = &s->bricks[i].rect;
         r->x = 27 + i * 49;
@@ -91,7 +106,7 @@ void init_brick(state *s) {
         r->w = 48;
         r->h = 20;
         s->bricks[i + 25].showing = 1;
-    }
+    }*/
 
 }
 

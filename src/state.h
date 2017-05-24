@@ -38,7 +38,7 @@ struct state {
     SDL_Rect paddleR;
     ball ball;
     brick *bricks;
-    Uint8 brick_count;
+    Uint32 brick_count;
 };
 
 #endif //BREAKOUT_STATE_H_H
