@@ -25,6 +25,7 @@ typedef struct brick brick;
 
 struct brick {
     SDL_Rect rect;
+    SDL_Color color;
     int showing;
 };
 

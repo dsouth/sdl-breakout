@@ -90,6 +90,10 @@ void init_brick(state *s) {
             rect->w = 48;
             rect->h = 20;
             s->bricks[i + r * 25].showing = 1;
+            s->bricks[i + r * 25].color.r = (Uint8) (rand() % 256);
+            s->bricks[i + r * 25].color.g = (Uint8) (rand() % 256);
+            s->bricks[i + r * 25].color.b = (Uint8) (rand() % 256);
+            s->bricks[i + r * 25].color.a = 255;
         }
     }
     /*

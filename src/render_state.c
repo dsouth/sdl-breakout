@@ -5,6 +5,10 @@
 #include "state.h"
 #include "constants.h"
 
+void setRenderColor(SDL_Renderer *r, SDL_Color *c) {
+    SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a);
+}
+
 
 void drawVerticalBoundary(state *s, int x) {
     SDL_Rect rect = {x, 0, x + BORDER_THICKNESS, SCREEN_HEIGHT};
@@ -54,6 +58,7 @@ void drawBricks(state *s) {
     for (Uint32 i = 0; i < s->brick_count; i ++) {
         brick *b = &s->bricks[i];
         if (b->showing) {
+            setRenderColor(s->renderer, &b->color);
             SDL_RenderFillRect(s->renderer, &b->rect);
         }
 
