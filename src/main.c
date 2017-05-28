@@ -96,17 +96,21 @@ Uint32 get_next_expected_time_delta() {
 
 void init_brick(state *s) {
     Uint32 rows = 5;
-    Uint32 columns = 25;
+    Uint32 columns = 15;
     Uint32 count = rows * columns;
     s->bricks = malloc(sizeof(brick) * count);
     s->brick_count = count;
+    const Uint16 brick_width = 80;
+    const Uint16 brick_height = 40;
+    const Uint16 width_gap = 2;
+    const Uint16 height_gap = 5;
     for (Uint16 r = 0; r < rows; r++) {
         for (Uint16 i = 0; i < columns; i++) {
             SDL_Rect *rect = &s->bricks[i + r * columns].rect;
-            rect->x = 27 + i * 49;
-            rect->y = 120 + r * columns;
-            rect->w = 48;
-            rect->h = 20;
+            rect->x = 27 + i * (brick_width + width_gap);
+            rect->y = 120 + r * (brick_height + height_gap);
+            rect->w = brick_width;
+            rect->h = brick_height;
             s->bricks[i + r * columns].showing = 1;
             s->bricks[i + r * columns].color.r = (Uint8) (rand() % 256);
             s->bricks[i + r * columns].color.g = (Uint8) (rand() % 256);
