@@ -49,14 +49,20 @@ void highlight_rect(state *s, SDL_Color *c, SDL_Rect *r) {
     SDL_Color highlight;
     tint(*c, &highlight);
     setRenderColor(s->renderer, &highlight);
+    SDL_RenderDrawLine(s->renderer, r->x - 1, r->y - 1, r->x + r->w - 2, r->y -1);
     SDL_RenderDrawLine(s->renderer, r->x, r->y, r->x + r->w - 1, r->y);
     SDL_RenderDrawLine(s->renderer, r->x, r->y, r->x, r->y + r->h - 1);
+    SDL_RenderDrawLine(s->renderer, r->x - 1, r->y - 1, r->x - 1, r->y + r->h - 2);
     shade(*c, &highlight);
     setRenderColor(s->renderer, &highlight);
     SDL_RenderDrawLine(s->renderer, r->x + r->w - 1, r->y,
                        r->x + r->w - 1, r->y + r->h - 1);
+    SDL_RenderDrawLine(s->renderer, r->x + r->w - 2, r->y - 1,
+                       r->x + r->w - 2, r->y + r->h - 2);
     SDL_RenderDrawLine(s->renderer, r->x, r->y + r->h - 1,
                        r->x + r->w - 1, r->y + r->h - 1);
+    SDL_RenderDrawLine(s->renderer, r->x - 1, r->y + r->h - 2,
+                       r->x + r->w - 2, r->y + r->h - 2);
 
 }
 

@@ -104,11 +104,13 @@ void init_brick(state *s) {
     const Uint16 brick_height = 40;
     const Uint16 width_gap = 2;
     const Uint16 height_gap = 5;
+    const Uint16 top_y = 200;
+    const Uint16 top_x = 27;
     for (Uint16 r = 0; r < rows; r++) {
         for (Uint16 i = 0; i < columns; i++) {
             SDL_Rect *rect = &s->bricks[i + r * columns].rect;
-            rect->x = 27 + i * (brick_width + width_gap);
-            rect->y = 120 + r * (brick_height + height_gap);
+            rect->x = top_x + i * (brick_width + width_gap);
+            rect->y = top_y + r * (brick_height + height_gap);
             rect->w = brick_width;
             rect->h = brick_height;
             s->bricks[i + r * columns].showing = 1;
