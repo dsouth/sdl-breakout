@@ -2,6 +2,7 @@
 // Created by Doug South on 17/05/2017.
 //
 #include <SDL2/SDL.h>
+#include <SDL2_mixer/SDL_mixer.h>
 
 #include "controller.h"
 
@@ -12,6 +13,7 @@ typedef struct ball ball;
 
 struct ball {
     SDL_Rect ballR;
+    SDL_Color color;
     int ball_in_play;
     double x;
     double y;
@@ -29,6 +31,14 @@ struct brick {
     int showing;
 };
 
+typedef struct sound sound;
+
+struct sound {
+    Mix_Chunk *beep;
+    Mix_Chunk *peeeeeep;
+    Mix_Chunk *plop;
+};
+
 typedef struct state state;
 
 struct state {
@@ -40,6 +50,7 @@ struct state {
     ball ball;
     brick *bricks;
     Uint32 brick_count;
+    sound sound;
 };
 
 #endif //BREAKOUT_STATE_H_H

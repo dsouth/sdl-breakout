@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2_mixer/SDL_mixer.h>
 #include <time.h>
 
 #include "state.h"
@@ -11,23 +12,23 @@ state world_state;
 int init() {
     srand((unsigned int) time(NULL));
     int success = 0;
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         success = 0;
     } else {
         world_state.window = SDL_CreateWindow("Breakout",
-                                        SDL_WINDOWPOS_UNDEFINED,
-                                        SDL_WINDOWPOS_UNDEFINED,
-                                        SCREEN_WIDTH,
-                                        SCREEN_HEIGHT,
-                                        SDL_WINDOW_SHOWN);
+                                              SDL_WINDOWPOS_UNDEFINED,
+                                              SDL_WINDOWPOS_UNDEFINED,
+                                              SCREEN_WIDTH,
+                                              SCREEN_HEIGHT,
+                                              SDL_WINDOW_SHOWN);
         if (world_state.window == NULL) {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             success = 0;
         } else {
             world_state.renderer = SDL_CreateRenderer(world_state.window,
-                                                -1,
-                                                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                                                      -1,
+                                                      SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
             if (world_state.renderer == NULL) {
                 printf("Renderer could not be create! SDL_Error: %s\n", SDL_GetError());
                 success = 0;
@@ -42,7 +43,12 @@ int init() {
                     printf("Unable to open game controller! SDL_Error: %s\n", SDL_GetError());
                     success = 0;
                 } else {
-                    success = 1;
+                    if (Mix_OpenAudio(44100, AUDIO_S16, 2, 2048)  != 0) {
+                        printf("SDL_Mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+                        success = 0;
+                    } else {
+                        success = 1;
+                    }
                 }
             }
         }
@@ -51,13 +57,26 @@ int init() {
 }
 
 void close() {
+    Mix_Quit();
     SDL_JoystickClose(world_state.joystick);
     SDL_DestroyRenderer(world_state.renderer);
     SDL_DestroyWindow(world_state.window);
     SDL_Quit();
 }
 
-int loadMedia() {
+int loadMedia(state *s) {
+    s->sound.beep = Mix_LoadWAV("res/beep.ogg");
+    if (s->sound.beep == NULL) {
+        printf("Failed to load beep sound! SDL_Error: %s\n", SDL_GetError());
+    }
+//    s->sound.peeeeep = Mix_LoadWAV("res/peeeeeep.ogg");
+//    if (s->sound.peeeeeep == NULL) {
+//        printf("Failed to load peeeeeep sound! SDL_Error: %s\n", SDL_GetError());
+//    }
+    s->sound.plop = Mix_LoadWAV("res/plop.ogg");
+    if (s->sound.plop == NULL) {
+        printf("Failed to load plop sound! SDL_Error: %s\n", SDL_GetError());
+    }
     return 1;
 }
 
@@ -76,48 +95,32 @@ Uint32 get_next_expected_time_delta() {
 }
 
 void init_brick(state *s) {
-    Uint32 rows = 25;
-    Uint32 count = rows * 25;
-    printf("%lu\n", sizeof(brick));
-    printf("%lu\n", sizeof(brick) * count);
+    Uint32 rows = 5;
+    Uint32 columns = 25;
+    Uint32 count = rows * columns;
     s->bricks = malloc(sizeof(brick) * count);
     s->brick_count = count;
     for (Uint16 r = 0; r < rows; r++) {
-        for (Uint16 i =0; i < 25; i++) {
-            SDL_Rect *rect = &s->bricks[i + r * 25].rect;
+        for (Uint16 i = 0; i < columns; i++) {
+            SDL_Rect *rect = &s->bricks[i + r * columns].rect;
             rect->x = 27 + i * 49;
-            rect->y = 120 + r * 25;
+            rect->y = 120 + r * columns;
             rect->w = 48;
             rect->h = 20;
-            s->bricks[i + r * 25].showing = 1;
-            s->bricks[i + r * 25].color.r = (Uint8) (rand() % 256);
-            s->bricks[i + r * 25].color.g = (Uint8) (rand() % 256);
-            s->bricks[i + r * 25].color.b = (Uint8) (rand() % 256);
-            s->bricks[i + r * 25].color.a = 255;
+            s->bricks[i + r * columns].showing = 1;
+            s->bricks[i + r * columns].color.r = (Uint8) (rand() % 256);
+            s->bricks[i + r * columns].color.g = (Uint8) (rand() % 256);
+            s->bricks[i + r * columns].color.b = (Uint8) (rand() % 256);
+            s->bricks[i + r * columns].color.a = 0xFF;
         }
     }
-    /*
-    for (Uint8 i = 0; i < 25; i++) {
-        SDL_Rect *r = &s->bricks[i].rect;
-        r->x = 27 + i * 49;
-        r->y = 120;
-        r->w = 48;
-        r->h = 20;
-        s->bricks[i].showing = 1;
-        r = &s->bricks[i + 25].rect;
-        r->x = 27 + i * 49;
-        r->y = 145;
-        r->w = 48;
-        r->h = 20;
-        s->bricks[i + 25].showing = 1;
-    }*/
-
 }
 
 void event_loop() {
     init_controller_state((controller_state *) &(world_state.controller_state));
     reset_ball(&world_state);
     init_brick(&world_state);
+    SDL_SetRenderDrawBlendMode(world_state.renderer, SDL_BLENDMODE_BLEND);
     int quit = 0;
     SDL_Event e;
 
@@ -155,7 +158,7 @@ int main(int argc, char *args[]) {
     if (!init()) {
         printf("Failed to initialize!\n");
     } else {
-        if (!loadMedia()) {
+        if (!loadMedia(&world_state)) {
             printf("Failed to load media!\n");
         } else {
             event_loop();

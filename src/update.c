@@ -10,6 +10,8 @@ void reset_ball(state *s) {
     b->ball_in_play = 0;
     b->speed = 480.0 / FPS;
     b->missed = 0;
+    b->color.r = b->color.a = 0xFF;
+    b->color.g = b->color.b = 0x00;
     SDL_Rect *ballR = &(*s).ball.ballR;
     ballR->x = SCREEN_WIDTH / 2 + BALL_THICKNESS;
     ballR->y = SCREEN_HEIGHT - BORDER_THICKNESS - BALL_THICKNESS - 1;
@@ -22,12 +24,17 @@ void move_ball(state *s) {
     ball *b = (ball *) &((*s).ball);
     b->x += b->dx * b->speed;
     b->y += b->dy * b->speed;
-    b->ballR.x = (int)b->x;
-    b->ballR.y = (int)b->y;
+    b->ballR.x = (int) b->x;
+    b->ballR.y = (int) b->y;
+
+    b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
+
     // if hit top boundary
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
+        Mix_PlayChannel(-1, s->sound.beep, 0);
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
+        b->color.a = 0xFF;
 
         // if ball at or beyond paddle and going down
     } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS && b->dy > 0) {
@@ -52,9 +59,11 @@ void move_ball(state *s) {
                 }
                 b->dx = cos(current_ball_angle);
                 b->dy = -sin(current_ball_angle);
+                Mix_PlayChannel(-1, s->sound.plop, 0);
                 b->speed += 0.1;
                 b->ballR.y = SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS
                              + (b->ballR.y - SCREEN_HEIGHT + PADDLE_THICKNESS + BALL_THICKNESS);
+                b->color.a = 0xFF;
             } else {
                 b->missed = 1;
             }
@@ -66,25 +75,41 @@ void move_ball(state *s) {
         // if ball hit left border
     } else if (b->ballR.x < BORDER_THICKNESS) {
         b->dx = -b->dx;
+        Mix_PlayChannel(-1, s->sound.beep, 0);
         b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
+        b->color.a = 0xFF;
         // if ball hit right border
     } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
         b->dx = -b->dx;
+        Mix_PlayChannel(-1, s->sound.beep, 0);
         b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
                      - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
+        b->color.a = 0xFF;
     } else {
-        int bounced = 0;
+        // hit a brick?
+        brick *hit = NULL;
+        int area = 0;
+        int dx = 0;
         for (Uint32 i = 0; i < s->brick_count; i++) {
             if (s->bricks[i].showing && SDL_IntersectRect(&b->ballR, &s->bricks[i].rect, &result)) {
-                s->bricks[i].showing = 0;
-                if (!bounced) {
-                    b->dy = -b->dy;
-                    // bounce the ball
+                if (result.h * result.w > area) {
+                    area = result.h * result.w;
+                    hit = &s->bricks[i];
+                    dx = result.w < result.y ? 1 : 0;
                 }
-                bounced = 1;
             }
         }
-    }
+        if (hit != NULL) {
+            if (dx) {
+                b->dy = -b->dy;
+            } else {
+                b->dx = -b->dx;
+            }
+            hit->showing = 0;
+            Mix_PlayChannel(-1, s->sound.plop, 0);
+            b->color.a = 0xFF;
+        }
+     }
 }
 
 void update_state(state *s) {
