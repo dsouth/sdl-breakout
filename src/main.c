@@ -122,10 +122,20 @@ void init_brick(state *s) {
     }
 }
 
+void init_paddle(state *s) {
+    SDL_Rect* p = &s->paddle.paddleR;
+    p->x = 600;
+    p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
+    p->w = 99;
+    p->h = PADDLE_THICKNESS;
+
+}
+
 void event_loop() {
     init_controller_state((controller_state *) &(world_state.controller_state));
     reset_ball(&world_state);
     init_brick(&world_state);
+    init_paddle(&world_state);
     SDL_SetRenderDrawBlendMode(world_state.renderer, SDL_BLENDMODE_BLEND);
     int quit = 0;
     SDL_Event e;

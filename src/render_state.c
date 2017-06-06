@@ -67,28 +67,17 @@ void highlight_rect(state *s, SDL_Color *c, SDL_Rect *r) {
 }
 
 void drawPaddle(state *s) {
-    SDL_Rect *p = &((*s).paddleR);
-    int paddle = (int) ((((*s).controller_state).left_x_axis + 32768.0) * 1240.0 / 65536.0);
-    if (paddle < BORDER_THICKNESS) {
-        paddle = BORDER_THICKNESS;
-    } else if (paddle > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
-        paddle = SCREEN_WIDTH - BORDER_THICKNESS - 100;
-    }
-
-    p->x = paddle;
-    p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
-    p->w = 99;
-    p->h = PADDLE_THICKNESS;
+    SDL_Rect *p = &((*s).paddle.paddleR);
     SDL_Color c;
     c.r = c.g = c.b = c.a = 0xFF;
     setRenderColor(s->renderer, &c);
     SDL_RenderFillRect(s->renderer, p);
     highlight_rect(s, &c, p);
     SDL_SetRenderDrawColor(s->renderer, 0x00, 0x00, 0x00, 0xFF);
-    SDL_RenderDrawLine(s->renderer, paddle - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
-                       paddle - 1, SCREEN_HEIGHT);
-    SDL_RenderDrawLine(s->renderer, paddle + 100, SCREEN_HEIGHT - BORDER_THICKNESS,
-                       paddle + 100, SCREEN_HEIGHT);
+    SDL_RenderDrawLine(s->renderer, p->x - 1, SCREEN_HEIGHT - BORDER_THICKNESS,
+                       p->x - 1, SCREEN_HEIGHT);
+    SDL_RenderDrawLine(s->renderer, p->x + 100, SCREEN_HEIGHT - BORDER_THICKNESS,
+                       p->x + 100, SCREEN_HEIGHT);
 }
 
 

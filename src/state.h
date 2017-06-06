@@ -23,6 +23,13 @@ struct ball {
     int missed;
 };
 
+typedef struct paddle paddle;
+
+struct paddle {
+    SDL_Rect paddleR;
+    double x;
+};
+
 typedef struct brick brick;
 
 struct brick {
@@ -46,7 +53,7 @@ struct state {
     SDL_Renderer *renderer;
     SDL_Joystick *joystick;
     controller_state controller_state;
-    SDL_Rect paddleR;
+    paddle paddle;
     ball ball;
     brick *bricks;
     Uint32 brick_count;

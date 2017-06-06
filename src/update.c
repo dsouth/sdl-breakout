@@ -27,6 +27,7 @@ void move_ball(state *s) {
     b->ballR.x = (int) b->x;
     b->ballR.y = (int) b->y;
 
+    // Fade ball the farther it is up the screen
     b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
 
     // if hit top boundary
@@ -41,7 +42,7 @@ void move_ball(state *s) {
         // if the paddle hasn't yet missed the ball
         if (!b->missed) {
             // do we hit the ball
-            SDL_Rect *p = &((*s).paddleR);
+            SDL_Rect *p = &((*s).paddle.paddleR);
             // paddle 'hit' ball
             if (b->x > p->x - BALL_THICKNESS && b->x < p->x + p->w + 1) {
                 double current_ball_angle = acos(b->dx);
@@ -95,6 +96,7 @@ void move_ball(state *s) {
                 if (result.h * result.w > area) {
                     area = result.h * result.w;
                     hit = &s->bricks[i];
+                    // This need to be sooooo much better. :/
                     dx = result.w < result.y ? 1 : 0;
                 }
             }
@@ -112,7 +114,23 @@ void move_ball(state *s) {
      }
 }
 
+void update_paddle(state *s) {
+    double *x = &(s->paddle.x);
+    Sint16 axis = s->controller_state.left_x_axis;
+    if (axis < -8000 || axis > 8000) {
+        *x += axis / 4096.0;
+    }
+    if (*x < BORDER_THICKNESS) {
+        *x = BORDER_THICKNESS;
+    } else if (*x > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
+        *x = SCREEN_WIDTH - BORDER_THICKNESS - 100;
+    }
+    SDL_Rect* rect = &(s->paddle.paddleR);
+    rect->x = (Sint16) *x;
+}
+
 void update_state(state *s) {
+    update_paddle(s);
     ball *b = (ball *) &((*s).ball);
     if (b->ball_in_play) {
         move_ball(s);
@@ -125,11 +143,10 @@ void update_state(state *s) {
             b->dy = -sin(angle);
             move_ball(s);
         } else {
-            b->ballR.x = (*s).paddleR.x + 50 - BALL_THICKNESS / 2;
+            b->ballR.x = s->paddle.paddleR.x + 50 - BALL_THICKNESS / 2;
             b->x = b->ballR.x;
             b->y = b->ballR.y;
         }
     }
-
 }
 
