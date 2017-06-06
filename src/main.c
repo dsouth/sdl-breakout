@@ -124,7 +124,7 @@ void init_brick(state *s) {
 
 void init_paddle(state *s) {
     SDL_Rect* p = &s->paddle.paddleR;
-    p->x = 600;
+    s->paddle.x = 600;
     p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
     p->w = 99;
     p->h = PADDLE_THICKNESS;
