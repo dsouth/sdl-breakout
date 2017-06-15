@@ -2,7 +2,7 @@
 #include <SDL2_mixer/SDL_mixer.h>
 #include <time.h>
 
-#include "state.h"
+#include "state/state.h"
 #include "constants.h"
 #include "update.h"
 #include "render_state.h"
@@ -65,16 +65,17 @@ void close() {
 }
 
 int loadMedia(state *s) {
-    s->sound.beep = Mix_LoadWAV("res/beep.ogg");
-    if (s->sound.beep == NULL) {
+    sound* snd = (sound*)&s->sound;
+    snd->beep = Mix_LoadWAV("res/beep.ogg");
+    if (snd->beep == NULL) {
         printf("Failed to load beep sound! SDL_Error: %s\n", SDL_GetError());
     }
 //    s->sound.peeeeep = Mix_LoadWAV("res/peeeeeep.ogg");
 //    if (s->sound.peeeeeep == NULL) {
 //        printf("Failed to load peeeeeep sound! SDL_Error: %s\n", SDL_GetError());
 //    }
-    s->sound.plop = Mix_LoadWAV("res/plop.ogg");
-    if (s->sound.plop == NULL) {
+    snd->plop = Mix_LoadWAV("res/plop.ogg");
+    if (snd->plop == NULL) {
         printf("Failed to load plop sound! SDL_Error: %s\n", SDL_GetError());
     }
     return 1;
@@ -123,20 +124,29 @@ void init_brick(state *s) {
 }
 
 void init_paddle(state *s) {
-    SDL_Rect* p = &s->paddle.paddleR;
-    s->paddle.x = 600;
+    paddle* ps = (paddle*)&(s->paddle);
+    SDL_Rect* p = &ps->paddleR;
+    ps->x = 600;
     p->y = SCREEN_HEIGHT - BORDER_THICKNESS;
     p->w = 99;
     p->h = PADDLE_THICKNESS;
 
 }
 
+void init_state(state* s) {
+    init_controller_state((controller_state *) &(s->controller_state));
+    config* c;
+    c = (config *) &s->config;
+    c->fade_ball = 0;
+    c->pause_on_contact = 1;
+    reset_ball(s);
+    init_brick(s);
+    init_paddle(s);
+    SDL_SetRenderDrawBlendMode(s->renderer, SDL_BLENDMODE_BLEND);
+}
+
 void event_loop() {
-    init_controller_state((controller_state *) &(world_state.controller_state));
-    reset_ball(&world_state);
-    init_brick(&world_state);
-    init_paddle(&world_state);
-    SDL_SetRenderDrawBlendMode(world_state.renderer, SDL_BLENDMODE_BLEND);
+    init_state(&world_state);
     int quit = 0;
     SDL_Event e;
 
@@ -154,11 +164,7 @@ void event_loop() {
         update_state(&world_state);
         // don't render if behind
         if (SDL_GetTicks() < expected_time) {
-            SDL_SetRenderDrawColor(world_state.renderer, 0x00, 0x00, 0x00, 0xFF);
-            SDL_RenderClear(world_state.renderer);
-
             render_state(&world_state);
-
             SDL_RenderPresent(world_state.renderer);
             Uint32 ticks = SDL_GetTicks();
             // delay if we are ahead
@@ -180,6 +186,5 @@ int main(int argc, char *args[]) {
             event_loop();
         }
     }
-
     close();
 }

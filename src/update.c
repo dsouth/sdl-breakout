@@ -2,7 +2,7 @@
 // Created by Doug South on 22/05/2017.
 //
 
-#include "state.h"
+#include "state/state.h"
 #include "constants.h"
 
 void reset_ball(state *s) {
@@ -27,13 +27,17 @@ void move_ball(state *s) {
     b->ballR.x = (int) b->x;
     b->ballR.y = (int) b->y;
 
-    // Fade ball the farther it is up the screen
-    b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
+    config* c = (config*)&(s->config);
+    if (c->fade_ball) {
+        // Fade ball the farther it is up the screen
+        b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
+    }
 
     // if hit top boundary
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
-        Mix_PlayChannel(-1, s->sound.beep, 0);
+        sound* snd = (sound*)&s->sound;
+        Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
         b->color.a = 0xFF;
 
@@ -76,13 +80,15 @@ void move_ball(state *s) {
         // if ball hit left border
     } else if (b->ballR.x < BORDER_THICKNESS) {
         b->dx = -b->dx;
-        Mix_PlayChannel(-1, s->sound.beep, 0);
+        sound* snd = (sound*)&s->sound;
+        Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
         b->color.a = 0xFF;
         // if ball hit right border
     } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
         b->dx = -b->dx;
-        Mix_PlayChannel(-1, s->sound.beep, 0);
+        sound* snd = (sound*)&s->sound;
+        Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
                      - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
         b->color.a = 0xFF;
@@ -108,14 +114,16 @@ void move_ball(state *s) {
                 b->dx = -b->dx;
             }
             hit->showing = 0;
-            Mix_PlayChannel(-1, s->sound.plop, 0);
+            sound* snd = (sound*)&s->sound;
+            Mix_PlayChannel(-1, snd->plop, 0);
             b->color.a = 0xFF;
         }
      }
 }
 
 void update_paddle(state *s) {
-    double *x = &(s->paddle.x);
+    paddle* ps = (paddle *) &(s->paddle);
+    double *x = &(ps->x);
     Sint16 axis = s->controller_state.left_x_axis;
     if (axis < -8000 || axis > 8000) {
         *x += axis / 4096.0;
@@ -125,7 +133,7 @@ void update_paddle(state *s) {
     } else if (*x > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
         *x = SCREEN_WIDTH - BORDER_THICKNESS - 100;
     }
-    SDL_Rect* rect = &(s->paddle.paddleR);
+    SDL_Rect* rect = &(ps->paddleR);
     rect->x = (Sint16) *x;
 }
 

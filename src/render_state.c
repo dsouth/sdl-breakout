@@ -2,7 +2,7 @@
 // Created by Doug South on 22/05/2017.
 //
 #include <SDL2/SDL.h>
-#include "state.h"
+#include "state/state.h"
 #include "constants.h"
 
 void setRenderColor(SDL_Renderer *r, SDL_Color *c) {
@@ -67,7 +67,9 @@ void highlight_rect(state *s, SDL_Color *c, SDL_Rect *r) {
 }
 
 void drawPaddle(state *s) {
-    SDL_Rect *p = &((*s).paddle.paddleR);
+    paddle *ps = (paddle*)&(*s).paddle;
+
+    SDL_Rect *p = &(ps->paddleR);
     SDL_Color c;
     c.r = c.g = c.b = c.a = 0xFF;
     setRenderColor(s->renderer, &c);
@@ -102,6 +104,9 @@ void drawBricks(state *s) {
 }
 
 void render_state(state *s) {
+    SDL_SetRenderDrawColor(s->renderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_RenderClear(s->renderer);
+
     drawBoundary(s);
     drawPaddle(s);
     drawBall(s);
