@@ -9,5 +9,6 @@ typedef struct config config;
 struct config {
     int fade_ball;
     int pause_on_contact;
+    int contact_paused;
 };
 #endif //BREAKOUT_CONFIG_H

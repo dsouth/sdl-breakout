@@ -139,6 +139,7 @@ void init_state(state* s) {
     c = (config *) &s->config;
     c->fade_ball = 0;
     c->pause_on_contact = 1;
+    c->contact_paused = 0;
     reset_ball(s);
     init_brick(s);
     init_paddle(s);
@@ -161,7 +162,15 @@ void event_loop() {
             }
         }
 
-        update_state(&world_state);
+        config* c = (config *) &world_state.config;
+        if (!c->contact_paused) {
+            update_state(&world_state);
+        } else {
+            controller_state* cs = (controller_state*)&world_state.controller_state;
+            if (cs->button_a) {
+                c->contact_paused = 0;
+            }
+        }
         // don't render if behind
         if (SDL_GetTicks() < expected_time) {
             render_state(&world_state);

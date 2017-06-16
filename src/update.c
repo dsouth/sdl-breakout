@@ -33,6 +33,8 @@ void move_ball(state *s) {
         b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
     }
 
+    int hit_wall_or_brick = 0;
+
     // if hit top boundary
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
@@ -40,6 +42,7 @@ void move_ball(state *s) {
         Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
         b->color.a = 0xFF;
+        hit_wall_or_brick = 1;
 
         // if ball at or beyond paddle and going down
     } else if (b->ballR.y > SCREEN_HEIGHT - PADDLE_THICKNESS - BALL_THICKNESS && b->dy > 0) {
@@ -84,6 +87,7 @@ void move_ball(state *s) {
         Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
         b->color.a = 0xFF;
+        hit_wall_or_brick = 1;
         // if ball hit right border
     } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
         b->dx = -b->dx;
@@ -92,6 +96,7 @@ void move_ball(state *s) {
         b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
                      - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
         b->color.a = 0xFF;
+        hit_wall_or_brick = 1;
     } else {
         // hit a brick?
         brick *hit = NULL;
@@ -117,8 +122,12 @@ void move_ball(state *s) {
             sound* snd = (sound*)&s->sound;
             Mix_PlayChannel(-1, snd->plop, 0);
             b->color.a = 0xFF;
+            hit_wall_or_brick = 1;
         }
-     }
+    }
+    if (c->pause_on_contact && hit_wall_or_brick) {
+        c->contact_paused = 1;
+    }
 }
 
 void update_paddle(state *s) {
