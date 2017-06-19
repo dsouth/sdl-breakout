@@ -140,6 +140,7 @@ void init_state(state* s) {
     c->fade_ball = 0;
     c->pause_on_contact = 1;
     c->contact_paused = 0;
+    c->debug = 1;
     reset_ball(s);
     init_brick(s);
     init_paddle(s);

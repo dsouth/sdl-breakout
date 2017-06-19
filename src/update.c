@@ -27,7 +27,7 @@ void move_ball(state *s) {
     b->ballR.x = (int) b->x;
     b->ballR.y = (int) b->y;
 
-    config* c = (config*)&(s->config);
+    config *c = (config *) &(s->config);
     if (c->fade_ball) {
         // Fade ball the farther it is up the screen
         b->color.a = (1.0 * s->ball.ballR.y / SCREEN_HEIGHT) * 255;
@@ -38,7 +38,7 @@ void move_ball(state *s) {
     // if hit top boundary
     if (b->ballR.y < BORDER_THICKNESS) {
         b->dy = -b->dy;
-        sound* snd = (sound*)&s->sound;
+        sound *snd = (sound *) &s->sound;
         Mix_PlayChannel(-1, snd->beep, 0);
         b->ballR.y = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.y);
         b->color.a = 0xFF;
@@ -81,22 +81,30 @@ void move_ball(state *s) {
             }
         }
         // if ball hit left border
-    } else if (b->ballR.x < BORDER_THICKNESS) {
+    } else if (b->ballR.x < BORDER_THICKNESS
+               || b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
+        if (c->debug) {
+            printf("ball x was %d\n", b->ballR.x);
+            printf("dx was %f\n", b->dx);
+        }
         b->dx = -b->dx;
-        sound* snd = (sound*)&s->sound;
+        if (c->debug) {
+            printf("dx is now %f\n", b->dx);
+        }
+        sound *snd = (sound *) &s->sound;
         Mix_PlayChannel(-1, snd->beep, 0);
-        b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
+        if (b->ballR.x < BORDER_THICKNESS) {
+            b->ballR.x = BORDER_THICKNESS + (BORDER_THICKNESS - b->ballR.x);
+        } else {
+            b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
+                         - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
+        }
+        if (c->debug) {
+            printf("ball is now %d\n", b->ballR.x);
+        }
         b->color.a = 0xFF;
         hit_wall_or_brick = 1;
         // if ball hit right border
-    } else if (b->ballR.x > SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS) {
-        b->dx = -b->dx;
-        sound* snd = (sound*)&s->sound;
-        Mix_PlayChannel(-1, snd->beep, 0);
-        b->ballR.x = SCREEN_WIDTH - BORDER_THICKNESS - BALL_THICKNESS
-                     - (b->ballR.x - SCREEN_WIDTH + BORDER_THICKNESS + BALL_THICKNESS);
-        b->color.a = 0xFF;
-        hit_wall_or_brick = 1;
     } else {
         // hit a brick?
         brick *hit = NULL;
@@ -119,7 +127,7 @@ void move_ball(state *s) {
                 b->dx = -b->dx;
             }
             hit->showing = 0;
-            sound* snd = (sound*)&s->sound;
+            sound *snd = (sound *) &s->sound;
             Mix_PlayChannel(-1, snd->plop, 0);
             b->color.a = 0xFF;
             hit_wall_or_brick = 1;
@@ -131,7 +139,7 @@ void move_ball(state *s) {
 }
 
 void update_paddle(state *s) {
-    paddle* ps = (paddle *) &(s->paddle);
+    paddle *ps = (paddle *) &(s->paddle);
     double *x = &(ps->x);
     Sint16 axis = s->controller_state.left_x_axis;
     if (axis < -8000 || axis > 8000) {
@@ -142,7 +150,7 @@ void update_paddle(state *s) {
     } else if (*x > SCREEN_WIDTH - BORDER_THICKNESS - 100) {
         *x = SCREEN_WIDTH - BORDER_THICKNESS - 100;
     }
-    SDL_Rect* rect = &(ps->paddleR);
+    SDL_Rect *rect = &(ps->paddleR);
     rect->x = (Sint16) *x;
 }
 
