@@ -2,8 +2,8 @@
 // Created by Doug South on 22/05/2017.
 //
 
-#include "state/state.h"
-#include "constants.h"
+#include "../state/state.h"
+#include "../constants.h"
 
 void reset_ball(state *s) {
     ball *b = (ball *) &((*s).ball);
@@ -154,7 +154,7 @@ void update_paddle(state *s) {
     rect->x = (Sint16) *x;
 }
 
-void update_state(state *s) {
+void breakout_update(state *s) {
     update_paddle(s);
     ball *b = (ball *) &((*s).ball);
     if (b->ball_in_play) {

@@ -2,8 +2,8 @@
 // Created by Doug South on 22/05/2017.
 //
 #include <SDL2/SDL.h>
-#include "state/state.h"
-#include "constants.h"
+#include "../state/state.h"
+#include "../constants.h"
 
 void setRenderColor(SDL_Renderer *r, SDL_Color *c) {
     if (SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a) == -1) {
@@ -22,7 +22,7 @@ void drawHorizontalBoundary(state *s, int y) {
     SDL_RenderFillRect(s->renderer, &rect);
 }
 
-void drawBoundary(state *s) {
+void draw_breakout_boundary(state *s) {
     SDL_SetRenderDrawColor(s->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     drawVerticalBoundary(s, 0);
     drawVerticalBoundary(s, SCREEN_WIDTH - BORDER_THICKNESS);
@@ -66,7 +66,7 @@ void highlight_rect(state *s, SDL_Color *c, SDL_Rect *r) {
 
 }
 
-void drawPaddle(state *s) {
+void draw_breakout_paddle(state *s) {
     paddle *ps = (paddle*)&(*s).paddle;
 
     SDL_Rect *p = &(ps->paddleR);
@@ -83,14 +83,14 @@ void drawPaddle(state *s) {
 }
 
 
-void drawBall(state *s) {
+void draw_breakout_ball(state *s) {
     setRenderColor(s->renderer, &s->ball.color);
     SDL_RenderFillRect(s->renderer, &s->ball.ballR);
     highlight_rect(s, &s->ball.color, &s->ball.ballR);
 }
 
 
-void drawBricks(state *s) {
+void draw_breakout_bricks(state *s) {
     for (Uint32 i = 0; i < s->brick_count; i ++) {
         brick *brick = &s->bricks[i];
         if (brick->showing) {
@@ -103,14 +103,14 @@ void drawBricks(state *s) {
 
 }
 
-void render_state(state *s) {
+void breakout_render(state *s) {
     SDL_SetRenderDrawColor(s->renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(s->renderer);
 
-    drawBoundary(s);
-    drawPaddle(s);
-    drawBall(s);
-    drawBricks(s);
+    draw_breakout_boundary(s);
+    draw_breakout_paddle(s);
+    draw_breakout_ball(s);
+    draw_breakout_bricks(s);
 }
 
 

@@ -4,8 +4,8 @@
 
 #include "state/state.h"
 #include "constants.h"
-#include "update.h"
-#include "render_state.h"
+#include "breakout/breakout_update.h"
+#include "breakout/breakout_render.h"
 
 state world_state;
 
@@ -165,7 +165,7 @@ void event_loop() {
 
         config* c = (config *) &world_state.config;
         if (!c->contact_paused) {
-            update_state(&world_state);
+            breakout_update(&world_state);
         } else {
             controller_state* cs = (controller_state*)&world_state.controller_state;
             if (cs->button_a) {
@@ -174,7 +174,7 @@ void event_loop() {
         }
         // don't render if behind
         if (SDL_GetTicks() < expected_time) {
-            render_state(&world_state);
+            breakout_render(&world_state);
             SDL_RenderPresent(world_state.renderer);
             Uint32 ticks = SDL_GetTicks();
             // delay if we are ahead
